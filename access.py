@@ -11,9 +11,10 @@ current_os = None
 player_path = None
 player_flags = "--video-on-top --no-video-title-show"
 video_path = "assets/video.mp4"
-failed = 0
+failed_attempts = 0
 
 
+# Thread object used to play the video
 class VideoPlayer(Thread):
 	def __init__(self):
 		Thread.__init__(self)
@@ -23,11 +24,12 @@ class VideoPlayer(Thread):
 		subprocess.run(player_path + " " + player_flags + " " + video_path + " &> /dev/null", shell=True)
 
 
+# Handles CTRL + C signal gracefully
 def signal_handler(sig, frame):
 	sys.exit(0)
 
 
-# Make sure that we are inside a supported OS, then configure local variables accordingly
+# Makes sure that we are inside a supported OS, then configure local variables accordingly
 def configure_platform():
 	global current_os
 	if sys.platform.startswith("win32"):
@@ -47,6 +49,7 @@ def configure_platform():
 	signal.signal(signal.SIGINT, signal_handler)
 
 
+# Sets all paths to the right video player depending on the OS
 def set_path():
 	global player_path
 	if current_os == "windows":
@@ -59,31 +62,37 @@ def set_path():
 		print("Unable to set path for an unknown OS")
 
 
+# Execute sudo command with all the given parameters from the user
 def execute_sudo():
 	sudo_args = ""
 	for arg in sys.argv[1:]:
 		sudo_args += arg + " "
 	result = subprocess.run("sudo " + sudo_args, shell=True)
-	if result.returncode == 1:
-		global failed
-		failed += 1
+	if result.returncode == 1:  # sudo has not completed successfully (i.e. wrong password given)
+		global failed_attempts
+		failed_attempts += 1
+
+
+# Prints message on the terminal and starts the video player
+def print_message():
+	print("\naccess: PERMISSION DENIED.", end="")
+	time.sleep(1)
+	print("...and...")
+	time.sleep(1)
+	video_thread = VideoPlayer()
+	video_thread.daemon = True
+	video_thread.start()
+	while True:
+		print("YOU DIDN'T SAY THE MAGIC WORD!")
+		time.sleep(0.05)
 
 
 def main():
 	configure_platform()
 	set_path()
 	execute_sudo()
-	if failed > 0:
-		print("\naccess: PERMISSION DENIED.", end="")
-		time.sleep(1)
-		print("...and...")
-		time.sleep(1)
-		video_thread = VideoPlayer()
-		video_thread.daemon = True
-		video_thread.start()
-		while True:
-			print("YOU DIDN'T SAY THE MAGIC WORD!")
-			time.sleep(0.05)
+	if failed_attempts > 0:
+		print_message()
 
 
 if __name__ == "__main__":
