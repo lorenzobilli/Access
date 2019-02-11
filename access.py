@@ -4,6 +4,7 @@ from threading import Thread
 import os
 import subprocess
 import sys
+import signal
 import time
 
 current_os = None
@@ -20,6 +21,10 @@ class VideoPlayer(Thread):
 	def run(self):
 		time.sleep(3)
 		subprocess.run(player_path + " " + player_flags + " " + video_path + " &> /dev/null", shell=True)
+
+
+def signal_handler(sig, frame):
+	sys.exit(0)
 
 
 # Make sure that we are inside a supported OS, then configure local variables accordingly
@@ -39,6 +44,7 @@ def configure_platform():
 	else:
 		print("Unsupported OS")
 		exit(1)
+	signal.signal(signal.SIGINT, signal_handler)
 
 
 def set_path():
