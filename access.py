@@ -36,7 +36,7 @@ def set_path():
 	if current_os == "windows":
 		player_path = "/mnt/c/Program\\ Files/VideoLAN/VLC/vlc.exe"
 	elif current_os == "macos":
-		player_path = "Applications/VLC.app/Contents/MacOS/VLC"
+		player_path = "vlc"
 	elif current_os == "linux":
 		player_path = ""
 	else:
