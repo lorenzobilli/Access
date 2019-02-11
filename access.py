@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from threading import Thread
 import os
 import subprocess
 import sys
@@ -10,6 +11,15 @@ player_path = None
 player_flags = "--video-on-top --no-video-title-show"
 video_path = "assets/video.mp4"
 failed = 0
+
+
+class VideoPlayer(Thread):
+	def __init__(self):
+		Thread.__init__(self)
+
+	def run(self):
+		time.sleep(3)
+		subprocess.run(player_path + " " + player_flags + " " + video_path + " &> /dev/null", shell=True)
 
 
 # Make sure that we are inside a supported OS, then configure local variables accordingly
@@ -58,14 +68,16 @@ def main():
 	set_path()
 	execute_sudo()
 	if failed > 0:
-		quantity = 200
-		print("\nPERMISSION DENIED...and.....")
+		print("\naccess: PERMISSION DENIED.", end="")
 		time.sleep(1)
-		while quantity != 0:
+		print("...and...")
+		time.sleep(1)
+		video_thread = VideoPlayer()
+		video_thread.daemon = True
+		video_thread.start()
+		while True:
 			print("YOU DIDN'T SAY THE MAGIC WORD!")
-			time.sleep(0.01)
-			quantity -= 1
-		subprocess.run(player_path + " " + player_flags + " " + video_path + " &> /dev/null", shell=True)
+			time.sleep(0.05)
 
 
 if __name__ == "__main__":
